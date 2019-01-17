@@ -106,13 +106,16 @@ class fxcmpy(object):
             else:
                 raise IOError('Can not find configuration file: %s.'
                               % config_file)
-
+        self.port = 443
         if server == 'demo':
             self.trading_url = 'https://api-demo.fxcm.com'
-            self.port = 443
         elif server == 'real':
             self.trading_url = 'https://api.fxcm.com'
-            self.port = 443
+        elif server == 'demo2':
+            self.trading_url = 'https://api-demo.fuhuisupport.com'
+        elif server == 'real2':
+            self.trading_url = 'https://api.fuhuisupport.com'
+            
 
         if access_token != '':
             self.access_token = access_token
@@ -1035,7 +1038,7 @@ class fxcmpy(object):
         stop: float or None (default None),
             the trades stop rate.
 
-        trailing_step: float or None (default None),
+        trailing_step: int or None (default None),
             the trailing step for the stop rate.
 
         account_id: integer (Default None),
@@ -1104,7 +1107,7 @@ class fxcmpy(object):
 
         if trailing_step is not None:
             try:
-                trailing_step = float(trailing_step)
+                trailing_step = int(trailing_step)      #DH change from float to int
             except:
                 raise ValueError('trailing step must be a number.')
 
@@ -1132,12 +1135,12 @@ class fxcmpy(object):
                                        params=params, protocol='post')
         if 'data' in data and 'orderId' in data['data']:
             order_id = int(data['data']['orderId'])
-			return data
+            #return data
         else:
             self.logger.warn('Missing orderId in servers answer.')
             return 0
 
-        """count = 0
+        count = 0
         order = None
         while count < 10:
             try:
@@ -1149,7 +1152,7 @@ class fxcmpy(object):
                 #order = self.get_order(order_id)
         if order == None:
             self.logger.warn('Can not find Order object, returning None.')
-        return order"""
+        return order
 
     def change_trade_stop_limit(self, trade_id, is_stop, rate, is_in_pips=True,
                                 trailing_step=0):
@@ -1170,7 +1173,7 @@ class fxcmpy(object):
         is_in_pips: boolean (Default True),
             whether the trade's stop/limit rates are in pips.
 
-        trailing_step: float (Default 0),
+        trailing_step: int (Default 0),
             the trailing step for the stop rate.
         """
 
@@ -1199,7 +1202,7 @@ class fxcmpy(object):
             raise ValueError('is_in_pips must be a boolean.')
 
         try:
-            trailing_step = float(trailing_step)
+            trailing_step = int(trailing_step)
         except:
             raise TypeError('trailing_step must be a number.')
 
@@ -1314,7 +1317,7 @@ class fxcmpy(object):
             the new range of the order. Only used for 'RangeEntry' orders,
             for other orders, it is 0 (default).
 
-        trailing_step: float,
+        trailing_step: int,
             the new trailing step for the order. Defaults to None.
 
         """
@@ -1341,7 +1344,7 @@ class fxcmpy(object):
 
         if trailing_step is not None:
             try:
-                trailing_step = float(trailing_step)
+                trailing_step = int(trailing_step)
             except:
                 raise ValueError('trailing step must be a number.')
 
@@ -1508,7 +1511,7 @@ class fxcmpy(object):
         stop: float or None (default None),
             the trades stop rate.
 
-        trailing_step: float or None (default None),
+        trailing_step: int or None (default None),
             the trailing step for the stop rate.
 
         trailing_stop_step: float or None (default None),
@@ -1582,13 +1585,13 @@ class fxcmpy(object):
 
         if trailing_step is not None:
             try:
-                trailing_step = float(trailing_step)
+                trailing_step = int(trailing_step)
             except:
                 raise ValueError('trailing_step must be a number.')
 
         if trailing_stop_step is not None:
             try:
-                trailing_stop_step = float(trailing_stop_step)
+                trailing_stop_step = int(trailing_stop_step) 
             except:
                 raise ValueError('trailing_stop_step must be a number.')
 
@@ -1790,10 +1793,10 @@ class fxcmpy(object):
         stop2: float (default 0),
             the second order's stop rate.
 
-        trailing_step: float (default 0),
+        trailing_step: int (default 0),
             the trailing step for the first order.
 
-        trailing_step2: float (default 0),
+        trailing_step2: int (default 0),
             the trailing step for the second order.
 
         trailing_stop_step: float (default 0),
@@ -1887,22 +1890,22 @@ class fxcmpy(object):
             raise TypeError('stop2 must be a number.')
 
         try:
-            trailing_step = float(trailing_step)
+            trailing_step = int(trailing_step)
         except:
             raise ValueError('trailing step must be a number.')
 
         try:
-            trailing_step2 = float(trailing_step2)
+            trailing_step2 = int(trailing_step2)
         except:
             raise ValueError('trailing step must be a number.')
 
         try:
-            trailing_stop_step = float(trailing_stop_step)
+            trailing_stop_step = int(trailing_stop_step)        #DH replace float to int
         except:
             raise ValueError('trailing_stop_step must be a number.')
 
         try:
-            trailing_stop_step2 = float(trailing_stop_step2)
+            trailing_stop_step2 = int(trailing_stop_step2)      #DH replace float to int
         except:
             raise ValueError('trailing_stop_step2 must be a number.')
 
@@ -2414,6 +2417,7 @@ class fxcmpy(object):
     def __handle_request__(self, method='', params={}, protocol='get'):
         """ Sends server requests. """
 
+        #print("params=", params)
         if method == '':
             self.logger.error('Error in __handle__requests__: No method given')
             raise ValueError('No method given.')
