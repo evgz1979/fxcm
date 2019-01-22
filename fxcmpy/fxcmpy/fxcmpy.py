@@ -739,8 +739,14 @@ class fxcmpy(object):
                 self.add_callbacks[symbol][func.__name__] = func
 
         params = {'pairs': symbol}
-        self.__handle_request__(method='subscribe', params=params,
+        data = self.__handle_request__(method='subscribe', params=params,
                                        protocol='post')
+        if symbol not in self.prices:
+            data = data['pairs'][0]
+            date = pd.to_datetime(int(data['Updated']), unit='ms')
+            self.prices[symbol] = pd.DataFrame([data['Rates'][0:4]],
+                columns=['Bid', 'Ask', 'High', 'Low'],
+                index=[date])
         self.socket.on(symbol, self.__on_price_update__)
 
     def subscribe_data_model(self, model='', add_callbacks=()):
