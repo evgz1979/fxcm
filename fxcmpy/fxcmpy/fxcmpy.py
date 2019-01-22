@@ -31,15 +31,6 @@ from fxcmpy.fxcmpy_order import fxcmpy_order
 
 from urllib.parse import unquote
 
-
-MISSING_ACCESS_TOKEN = "Cannot find access token. Please provide \
-the token either as parameter in the class constructor or within a \
-a configuration file and provide the file's path as parameter in the \
-class constructor."
-
-LOG_LEVELS = {'error': 40, 'warn': 30, 'info': 20, 'debug': 10}
-
-
 class ServerError(Exception):
     pass
 
@@ -60,6 +51,16 @@ class fxcmpy(object):
                        'askopen', 'askclose', 'askhigh', 'asklow', 'tickqty']
     CANDLES_COLUMNS_ASK = ['date', 'askopen', 'askclose', 'askhigh', 'asklow']
     CANDLES_COLUMNS_BID = ['date', 'bidopen', 'bidclose', 'bidhigh', 'bidlow']
+    LOG_LEVELS = {'error': 40, 'warn': 30, 'info': 20, 'debug': 10}
+    LOG_FORMAT = '|%(levelname)s|%(asctime)s|%(message)s'
+    PROXY_TYPES = ['http', 'socks4', 'socks5']
+    SERVERS = {
+        'demo': 'https://api-demo.fxcm.com',
+        'real': 'https://api.fxcm.com',
+        'demo2': 'https://api-demo.fuhuisupport.com',
+        'real2': 'https://api.fuhuisupport.com'
+    }
+    port = 443
 
     debug = False
 
@@ -80,7 +81,7 @@ class fxcmpy(object):
         log_file: string (default: None),
             path of an optional log file. If not given (and not found in the
             optional configuration file), log messages are printed to stdout.
-        log_level: string (default: ''),
+        log_level: string (default: 'warn'),
             the log level. Must be one of 'error', 'warn', 'info' or 'debug'.
             If not given (and not found in the optional configuration file),
             'warn' is used.
@@ -92,116 +93,92 @@ class fxcmpy(object):
         proxy_port, integer (default: None):
             if proxy_url is given (or found in the optional configuration file),
             this is the port of the proxy server.
-        proxy_type, one of 'http', 'socks4', 'socks5' or None (default):
+        proxy_type, one of 'http', 'socks4', 'socks5' or None (default: 'http'),
             if proxy_url is given (or found in the optional configuration file),
             this is the type of the proxy server.
 
         """
 
-        self.logger = None
-        self.config_file = ''
-        if config_file != '':
-            if os.path.isfile(config_file):
-                self.config_file = config_file
-            else:
-                raise IOError('Can not find configuration file: %s.'
-                              % config_file)
-        self.port = 443
-        if server == 'demo':
-            self.trading_url = 'https://api-demo.fxcm.com'
-        elif server == 'real':
-            self.trading_url = 'https://api.fxcm.com'
-        elif server == 'demo2':
-            self.trading_url = 'https://api-demo.fuhuisupport.com'
-        elif server == 'real2':
-            self.trading_url = 'https://api.fuhuisupport.com'
-            
-
-        if access_token != '':
-            self.access_token = access_token
-        elif self.config_file != '':
-            try:
-                self.access_token = self.__get_config_value__('FXCM',
-                                                              'access_token')
-            except:
-                msg = 'Can not find access token in configuration file %s.'
-                raise ValueError(msg % self.config_file)
+        config = configparser.SafeConfigParser()
+        found_config_file = config.read(config_file)
+        if config_file:
+            if len(found_config_file) == 0:
+                raise IOError("Can not open config file: {0}"
+                    .format(config_file))
+            if 'FXCM' not in config.sections():
+                raise ValueError("Can not find section [FXCM] in {0}"
+                    .format(config_file))
         else:
-            raise ValueError(MISSING_ACCESS_TOKEN)
-
-        if log_level != '':
-            if log_level in LOG_LEVELS:
-                log_level = LOG_LEVELS[log_level]
-            else:
-                raise ValueError('log_level must be one of %s.'
-                                 % LOG_LEVELS.keys())
-        elif self.config_file != '':
-            try:
-                log_level = LOG_LEVELS[
-                             self.__get_config_value__('FXCM', 'log_level')]
-            except:
-                log_level = LOG_LEVELS['warn']
+            config.add_section('FXCM')
+        
+        if not log_level:
+            log_level = config['FXCM'].get('log_level','warn')
+        log_level = log_level.strip('"').strip("'")
+        if log_level in self.LOG_LEVELS:
+            log_level = self.LOG_LEVELS[log_level]
         else:
-            log_level = LOG_LEVELS['warn']
-
-        if log_file is not None:
-            log_path = log_file
-        elif self.config_file != '':
-            try:
-                log_path = self.__get_config_value__('FXCM', 'log_file')
-            except:
-                log_path = ''
+            raise ValueError("log_level must be one of {0}"
+                .format(self.LOG_LEVELS.keys()))
+        
+        if not log_file:
+            log_file = config['FXCM'].get('log_file')
+        if log_file:
+            log_file = log_file.strip('"').strip("'")
+            if config_file == log_file:
+                raise Exception("config_file and log_file must be different")
+            logging.basicConfig(filename=log_file, level=log_level,
+                format=self.LOG_FORMAT)
         else:
-            log_path = ''
-
-        if log_path == '':
-            form = '|%(levelname)s|%(asctime)s|%(message)s'
-            logging.basicConfig(level=log_level, format=form)
-        else:
-            form = '|%(levelname)s|%(asctime)s|%(message)s'
-            logging.basicConfig(filename=log_path, level=log_level,
-                                format=form)
-
+            logging.basicConfig(level=log_level, format=self.LOG_FORMAT)
         self.logger = logging.getLogger('FXCM')
-
-        if proxy_url is None and self.config_file != '':
+        
+        if not server:
+            server = config['FXCM'].get('server','demo')
+        server = server.strip('"').strip("'")
+        if server in self.SERVERS:
+            self.trading_url = self.SERVERS[server]
+        else:
+            raise ValueError("server must be one of {0}"
+                .format(self.SERVERS.keys()))
+        
+        self.access_token = access_token
+        if not self.access_token:
+            self.access_token = config['FXCM'].get('access_token')
+        if not self.access_token:
+            raise ValueError("access_token not provided")
+        self.access_token = self.access_token.strip('"').strip("'")
+        if len(self.access_token) != 40:
+            raise ValueError("access_token must have a length of 40 characters")
+        
+        if not proxy_url:
+            proxy_url = config['FXCM'].get('proxy_url')
+        if proxy_url:
+            proxy_url = proxy_url.strip('"').strip("'")
+            if not proxy_port:
+                proxy_port = config['FXCM'].get('proxy_port')
+            if not proxy_port:
+                raise ValueError("proxy_port not provided")
             try:
-                proxy_url = self.__get_config_value__('FXCM', 'proxy_url')
-            except:
+                proxy_port = int(proxy_port)
+            except ValueError:
                 pass
-        if proxy_url is not None:
-            if proxy_port is None and self.config_file != '':
-                try:
-                    proxy_port = self.__get_config_value__('FXCM', 'proxy_port')
-                except:
-                    raise ValueError('No port for proxy given')
-            if proxy_port is None:
-                raise ValueError('No port for proxy given')
-            else:
-                try:
-                    proxy_port = int(proxy_port)
-                except:
-                    raise ValueError('proxy_port must be an integer')
-
-            if proxy_type is None and self.config_file != '':
-                try:
-                    proxy_type = self.__get_config_value__('FXCM', 'proxy_type')
-                except:
-                    proxy_type = 'http'
-
-            if proxy_type not in ['http', 'socks4', 'socks5']:
-                self.logger.warn("No or invalid proxy_type, use 'http' instead")
-                proxy_type = 'http'
-
-            if proxy_type == 'http':
-                sec_proxy_type = 'https'
-            else:
-                sec_proxy_type = proxy_type 
-
-            self.proxies = {'https': '%s://%s:%s' % (sec_proxy_type, proxy_url, 
-                                                     proxy_port), 
-                            'http': '%s://%s:%s' % (proxy_type, proxy_url, 
-                                                    proxy_port) }
+            if not isinstance(proxy_port,int):
+                raise ValueError("proxy_port must be an integer")
+            if not 1 <= proxy_port <= 65535:
+                raise ValueError("proxy_port must be between 1 and 65535")
+            if not proxy_type:
+                proxy_type = config['FXCM'].get('proxy_type','http')
+            proxy_type = proxy_type.strip('"').strip("'")
+            if not proxy_type in self.PROXY_TYPES:
+                raise ValueError("proxy_type must be one of {0}"
+                    .format(self.PROXY_TYPES.keys()))
+            sec_proxy_type = 'https' if proxy_type == 'http' else proxy_type
+            self.proxies = {
+                'https': "{0}://{1}:{2}"
+                    .format(sec_proxy_type, proxy_url, proxy_port),
+                'http': "{0}://{1}:{2}"
+                    .format(proxy_type, proxy_url, proxy_port)
+            }
         else:
             self.proxies = {}
 
@@ -2784,33 +2761,3 @@ class fxcmpy(object):
 
     def __on_connection_error__(self, msg=''):
         self.logger.error('Connection error: %s' % msg)
-
-
-    def __get_config_value__(self, section, key):
-        config = configparser.ConfigParser()
-        try:
-            config.read(self.config_file)
-        except:
-            if self.logger:
-                self.logger.error('Can not open config file, no such file: %s.'
-                                  % self.config_file)
-            raise IOError('Can not open config file, no such file: %s.'
-                          % self.config_file)
-
-        if section not in config.sections():
-            if self.logger:
-                self.logger.error('Can not find section %s in %s.'
-                                  % (section, self.config_file))
-            raise ValueError('Can not find section %s in %s.'
-                             % (section, self.config_file))
-
-        if key not in config[section]:
-            if self.logger:
-                self.logger.info('Can not find key %s in section %s of %s.'
-                                  % (key, section, self.config_file))
-            raise ValueError('Can not find key %s in section %s of %s.'
-                             % (key, section, self.config_file))
-        if self.logger:
-            self.logger.debug('Found config value %s for key %s in section %s.'
-                              % (config[section][key], key, section))
-        return config[section][key]
