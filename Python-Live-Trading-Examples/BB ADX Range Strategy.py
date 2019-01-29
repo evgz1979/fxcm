@@ -8,7 +8,7 @@ from pyti.directional_indicators import average_directional_index as adx
 # This strategy buys when price breaks below the lower Bollinger band and sells when price
 # breaks above the upper Bollinger, but only when ADX is below 25. Limit orders are set at the
 # middle Bollinger band with an equidistant Stop order. Trades will also close if price closes beyond
-# the Biddle bollinger band. Limit order price is updated to match middle Bollinger each close-of-bar.
+# the middle bollinger band. Limit order price is updated to match middle Bollinger each close-of-bar.
 # Parameters allow traders to change token, symbol, timeframe, Bollinger bands periods/standard deviation,
 # ADX periods, and ADX Trade Below (the level ADX must be below in order to open a trade.)
 # This is a close-of-bar strategy, meaning it only signals trades at the close of a bar.
