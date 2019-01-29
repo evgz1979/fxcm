@@ -22,7 +22,7 @@ timeframe = "m30"	        # (m1,m5,m15,m30,H1,H2,H3,H4,H6,H8,D1,W1,M1)
 bb_periods = 20
 bb_standard_deviations = 2.0
 adx_periods = 14
-adx_trade_below = 100
+adx_trade_below = 25
 amount = 5
 #############################
 
