@@ -21,7 +21,7 @@ In an interactive context, you can use e.g. a variable called TOKEN to reference
 		TOKEN = YOUR_FXCM_API_TOKEN
 Connecting to the server, then boils down to the following line of code.
 
-		con = fxcmpy.fxcmpy(access_token=TOKEN, log_level='error')
+		con = fxcmpy.fxcmpy(access_token=TOKEN, log_level='error', server='demo')
 However, it is recommended to store the API token in a configuration file which allows for re-usability and hides the token on the GUI level. The file should contain the following lines.
 
 		[FXCM]
@@ -32,7 +32,7 @@ It is assumed onwards that this file is in the current working directory and tha
 
 With such a configuration file in the current working directory, only the filename need to be passed as a parameter to connect to the API.
 
-		con = fxcmpy.fxcmpy(config_file='fxcm.cfg')
+		con = fxcmpy.fxcmpy(config_file='fxcm.cfg', server='demo')
 ## Documentation
 The detailed documentation of this wrapper is found under:
 
