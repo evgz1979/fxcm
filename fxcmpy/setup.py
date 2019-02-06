@@ -11,7 +11,8 @@ def readme():
 setup(
     name = 'fxcmpy',
     packages = ['fxcmpy'], # this must be the same as the name above
-    version = '1.2.1',
+    use_scm_version = {'root':".."},
+    setup_requires = ['setuptools_scm'],
     description = 'A Python Wrapper Class for the RESTful API as provided by FXCM Forex Capital Markets Ltd.',
     long_description = readme(),
     author = 'FXCM API',
