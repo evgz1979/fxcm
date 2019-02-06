@@ -42,7 +42,10 @@ class fxcmpy_order(object):
         self.__con__ = connection
         self.logger = self.__con__.logger
         self.parameter = set()
-        self.__tradeId__ = 0
+        if 'tradeId' in kwargs:
+            self.__set_attribute__('tradeId', kwargs['tradeId'])
+        else:
+            self.__tradeId__ = 0
         for keyword in self.order_parameter:
             if keyword not in kwargs:
                 raise TypeError('__init__() required argument %s.' % keyword)
