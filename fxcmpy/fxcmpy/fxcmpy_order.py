@@ -288,7 +288,7 @@ class fxcmpy_order(object):
                                              stop=None,
                                              limit=limit_rate,
                                              is_stop_in_pips=None,
-                                             is_limit_in_pips=False)
+                                             is_limit_in_pips=is_in_pips)
 
     def delete(self):
         """ Delete the order."""
