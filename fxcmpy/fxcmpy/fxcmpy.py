@@ -21,7 +21,6 @@ import time
 import datetime as dt
 import configparser
 import logging
-import os
 
 import fxcmpy.fxcmpy_instruments as fxcmpy_instruments 
 from fxcmpy.fxcmpy_closed_position import fxcmpy_closed_position
@@ -30,6 +29,7 @@ from fxcmpy.fxcmpy_oco_order import fxcmpy_oco_order
 from fxcmpy.fxcmpy_order import fxcmpy_order
 
 from urllib.parse import unquote
+
 
 class ServerError(Exception):
     pass
@@ -40,9 +40,9 @@ class fxcmpy(object):
 
     # Class attributes
 
-    #auth_url = 'https://www-beta2.fxcorporate.com'
-    #trading_url = 'https://api-demo.fxcm.com'
-    #port = 443
+    # auth_url = 'https://www-beta2.fxcorporate.com'
+    # trading_url = 'https://api-demo.fxcm.com'
+    # port = 443
     models = ['Offer', 'Account', 'Order', 'OpenPosition', 'ClosedPosition',
               'Summary', 'Properties', 'LeverageProfile']
     PERIODS = ['m1', 'm5', 'm15', 'm30', 'H1', 'H2', 'H3', 'H4', 'H6', 'H8',
@@ -127,7 +127,7 @@ class fxcmpy(object):
             if config_file == log_file:
                 raise Exception("config_file and log_file must be different")
             logging.basicConfig(filename=log_file, level=log_level,
-                format=self.LOG_FORMAT)
+                                format=self.LOG_FORMAT)
         else:
             logging.basicConfig(level=log_level, format=self.LOG_FORMAT)
         self.logger = logging.getLogger('FXCM')
@@ -169,9 +169,9 @@ class fxcmpy(object):
             if not proxy_type:
                 proxy_type = config['FXCM'].get('proxy_type','http')
             proxy_type = proxy_type.strip('"').strip("'")
-            if not proxy_type in self.PROXY_TYPES:
+            if proxy_type not in self.PROXY_TYPES:
                 raise ValueError("proxy_type must be one of {0}"
-                    .format(self.PROXY_TYPES.keys()))
+                                 .format(", ".join(str(t) for t in self.PROXY_TYPES)))
             sec_proxy_type = 'https' if proxy_type == 'http' else proxy_type
             self.proxies = {
                 'https': "{0}://{1}:{2}"
@@ -183,6 +183,7 @@ class fxcmpy(object):
             self.proxies = {}
 
         self.socket = None
+        self.socket_thread = None
         self.orders_set = False
         self.oco_orders_set = False
         self.offers_set = False
@@ -218,7 +219,7 @@ class fxcmpy(object):
         self.__collect_account_ids__()
         self.default_account = self.account_ids[0]
         msg = 'Default account set to %s, to change use set_default_account().'
-        self.logger.warn(msg % self.default_account)
+        self.logger.warning(msg % self.default_account)
         self.__collect_orders__()
         self.__collect_oco_orders__()
         self.__collect_offers__()
@@ -249,7 +250,6 @@ class fxcmpy(object):
         self.oco_orders = dict()
         self.add_callbacks = dict()
         self.connection_status = 'unset'
-
 
     def connect(self):
         """ Connect to the FXCM server."""
@@ -295,7 +295,7 @@ class fxcmpy(object):
         if max_prices is not None:
             try:
                 max_prices = int(max_prices)
-            except:
+            except Exception:
                 raise TypeError('max_prices must be an integer')
             if max_prices < 1:
                 raise ValueError('max_prices must be positive')
@@ -306,7 +306,7 @@ class fxcmpy(object):
 
         self.logger.debug('Fetching available instruments')
 
-        data =  self.__get_instruments_table__()
+        data = self.__get_instruments_table__()
 
         if 'data' in data and 'instrument' in data['data']:
             instruments = [ins['symbol'] for ins in data['data']['instrument']]
@@ -315,7 +315,7 @@ class fxcmpy(object):
 
         return instruments
 
-    def get_model(self, models=list(), summary=False):
+    def get_model(self, models=None, summary=False):
         """ Return a snapshot of the the specified model(s).
 
         Arguments:
@@ -330,6 +330,9 @@ class fxcmpy(object):
         The current data of the specified model(s) in a json like manner.
 
         """
+
+        if models is None:
+            models = list()
 
         if len(models) == 0:
             raise ValueError('Please specify one or more models')
@@ -583,7 +586,7 @@ class fxcmpy(object):
         if position_id in self.open_pos:
             return self.open_pos[position_id]
         else:
-            self.logger.warn('No open position with id %s.' % position_id)
+            self.logger.warning('No open position with id %s.' % position_id)
             raise ValueError('No open position with id %s.' % position_id)
 
     def get_closed_position(self, position_id):
@@ -745,8 +748,8 @@ class fxcmpy(object):
             data = data['pairs'][0]
             date = pd.to_datetime(int(data['Updated']), unit='ms')
             self.prices[symbol] = pd.DataFrame([data['Rates'][0:4]],
-                columns=['Bid', 'Ask', 'High', 'Low'],
-                index=[date])
+                                               columns=['Bid', 'Ask', 'High', 'Low'],
+                                               index=[date])
         self.socket.on(symbol, self.__on_price_update__)
 
     def subscribe_data_model(self, model='', add_callbacks=()):
@@ -831,7 +834,6 @@ class fxcmpy(object):
 
         ret = self.__update__instrument_subscription__(symbol, False)
         return ret
-
 
     def unsubscribe_market_data(self, symbol=''):
         """ Unsubscribe for instrument prices of the given symbol."""
@@ -1090,7 +1092,7 @@ class fxcmpy(object):
 
         if trailing_step is not None:
             try:
-                trailing_step = int(trailing_step)      #DH change from float to int
+                trailing_step = int(trailing_step)      # DH change from float to int
             except:
                 raise ValueError('trailing step must be a number.')
 
@@ -1118,7 +1120,7 @@ class fxcmpy(object):
                                        params=params, protocol='post')
         if 'data' in data and 'orderId' in data['data']:
             order_id = int(data['data']['orderId'])
-            #return data
+            # return data
         else:
             self.logger.warn('Missing orderId in servers answer.')
             return 0
@@ -1132,8 +1134,8 @@ class fxcmpy(object):
             except:
                 time.sleep(1)
                 count += 1
-                #order = self.get_order(order_id)
-        if order == None:
+                # order = self.get_order(order_id)
+        if order is None:
             self.logger.warn('Can not find Order object, returning None.')
         return order
 
@@ -1246,7 +1248,7 @@ class fxcmpy(object):
             except:
                 raise TypeError('rate must be a number.')
 
-        if order_type == 'MarketRange' and at_market == None:
+        if order_type == 'MarketRange' and at_market is None:
             raise ValueError("at_market is required for order_type='MarketRange'")
 
         if at_market is not None:
@@ -1883,12 +1885,12 @@ class fxcmpy(object):
             raise ValueError('trailing step must be a number.')
 
         try:
-            trailing_stop_step = int(trailing_stop_step)        #DH replace float to int
+            trailing_stop_step = int(trailing_stop_step)        # DH replace float to int
         except:
             raise ValueError('trailing_stop_step must be a number.')
 
         try:
-            trailing_stop_step2 = int(trailing_stop_step2)      #DH replace float to int
+            trailing_stop_step2 = int(trailing_stop_step2)      # DH replace float to int
         except:
             raise ValueError('trailing_stop_step2 must be a number.')
 
@@ -1989,8 +1991,8 @@ class fxcmpy(object):
         self.__handle_request__(method='trading/remove_from_oco',
                                        params=params, protocol='post')
 
-    def edit_oco(self, oco_bulk_id, add_order_ids=list(),
-                 remove_order_ids=list()):
+    def edit_oco(self, oco_bulk_id, add_order_ids=None,
+                 remove_order_ids=None):
         """Add or remove orders to or from OCO Orders.
 
         Arguments:
@@ -2005,6 +2007,12 @@ class fxcmpy(object):
             the id's of the orders to remove from OCO Orders.
 
         """
+        if add_order_ids is None:
+            add_order_ids = list()
+
+        if remove_order_ids is None:
+            remove_order_ids = list()
+
         try:
             _ = (int(i) for i in add_order_ids)
         except:
@@ -2089,12 +2097,12 @@ class fxcmpy(object):
 
         """
 
-        if instrument == '' and offer_id == None:
+        if instrument == '' and offer_id is None:
             self.logger.error('Error in get_candles: No instrument given!.')
-            msg = ('Please provide either an instrument or an offer_id')
+            msg = 'Please provide either an instrument or an offer_id'
             raise ValueError(msg)
         elif instrument != '':
-            if offer_id != None:
+            if offer_id is not None:
                 msg = "Both, instrument and offer_id are given, "
                 msg += "taking the value of instrument." 
                 self.logger.warn(msg)
@@ -2251,7 +2259,7 @@ class fxcmpy(object):
         try:
             data = self.__handle_request__(method='trading/get_instruments')
         except:
-            self.logger.warn('Can not fetch instruments table from server.')
+            self.logger.warning('Can not fetch instruments table from server.')
             data = list()
         return data
 
@@ -2281,18 +2289,17 @@ class fxcmpy(object):
                     self.unsubscribe_instrument(offer['currency'])
         self.offers_set = True
 
-
     def __collect_positions__(self):
         data = self.get_open_positions('list')
         for pos in data:
             if 'tradeId' in pos and pos['tradeId'] != '':
                 self.open_pos[int(pos['tradeId'])] = fxcmpy_open_position(self,
-                                                                        pos)
+                                                                          pos)
         data = self.get_closed_positions('list')
         for po in data:
             if 'tradeId' in po and po['tradeId'] != '':
                 self.closed_pos[int(po['tradeId'])] = fxcmpy_closed_position(self,
-                                                                           po)
+                                                                             po)
         self.positions_set = True
 
     def __update__instrument_subscription__(self, symbol, visible):
@@ -2317,7 +2324,7 @@ class fxcmpy(object):
         if self.number_update_requests > 48:
             msg = 'Max. number of update request reached, renewing connection.'
 
-            self.logger.warn(msg)
+            self.logger.warning(msg)
             if self.is_connected():
                 self.socket.disconnect()
                 time.sleep(1)
@@ -2331,22 +2338,21 @@ class fxcmpy(object):
                                     params={'symbol':symbol, 'visible':visible},
                                     protocol='post')
         except:
-            self.logger.warn('Can not unsubscribe instrument %s' %symbol)
+            self.logger.warning('Can not unsubscribe instrument %s' % symbol)
             return False
         return True
-
 
     def __connect__(self):
         try:
             self.logger.debug('Access token: %s.' % self.access_token)
             self.socket = SocketIO(self.trading_url+':443', self.port,
                                    params={'access_token': self.access_token,
-                                            'agent': 'pythonquants'},
+                                           'agent': 'pythonquants'},
                                    wait_for_connection=False, 
                                    proxies = self.proxies)
             self.logger.info('Socket established: %s.' % self.socket)
             # self.socket_id = self.socket._engineIO_session.id
-            #self.logger.warn('Got socket session id: %s.' % self.socket_id)
+            # self.logger.warn('Got socket session id: %s.' % self.socket_id)
             
         except ConnectionError as inst:
             self.connection_status = 'aborted'
@@ -2363,9 +2369,8 @@ class fxcmpy(object):
             self.socket.on('error', self.__on_error__)
             self.socket.wait()
 
-
     def __reconnect__(self, count):
-        self.logger.warn('Not connected, try to reconnect. (%s)' % count)
+        self.logger.warning('Not connected, try to reconnect. (%s)' % count)
         try:
             self.socket_thread.join()
         except:
@@ -2382,7 +2387,7 @@ class fxcmpy(object):
         self.open_pos = dict()
         self.closed_pos = dict()
         self.oco_orders = dict()
-        #self.add_callbacks = dict()
+        # self.add_callbacks = dict()
         self.connection_status = 'unset'
 
         time.sleep(5)
@@ -2397,19 +2402,22 @@ class fxcmpy(object):
                                     protocol='post')
             self.socket.on(symbol, self.__on_price_update__)
 
-    def __handle_request__(self, method='', params={}, protocol='get'):
+    def __handle_request__(self, method='', params=None, protocol='get'):
         """ Sends server requests. """
 
-        #print("params=", params)
+        if params is None:
+            params = {}
+
+        # print("params=", params)
         if method == '':
             self.logger.error('Error in __handle__requests__: No method given')
             raise ValueError('No method given.')
         if type(params) is not dict:
             self.logger.debug('Error in __handle__requests__:')
-            self.logger.debig('params must be of type dict.')
+            self.logger.debug('params must be of type dict.')
             raise TypeError('params must be of type dict.')
 
-        self.logger.info('In handle_request with method %s' %method)
+        self.logger.info('In handle_request with method %s' % method)
         self.logger.info('Connection status: %s' % self.is_connected())
         self.logger.info('2. connection status: %s' % self.connection_status) 
         self.logger.info('Socket state: %s' % self.socket.connected)
@@ -2438,13 +2446,12 @@ class fxcmpy(object):
                                 'application/x-www-form-urlencoded'
                                }
 
-
         if method == 'trading/close_all_for_symbol':
             if ('forSymbol' in params and params['forSymbol'] == 'false'
-                 and len(self.open_pos) == 0):
-                self.logger.warn('No open positions to close')
+                    and len(self.open_pos) == 0):
+                self.logger.warning('No open positions to close')
                 return False
-            elif ('forSymbol' in params and params['forSymbol'] == 'true'):
+            elif 'forSymbol' in params and params['forSymbol'] == 'true':
                 count = 0
                 for pos in self.open_pos.values():
                     if pos.__currency__ == params['symbol']:
@@ -2452,7 +2459,6 @@ class fxcmpy(object):
                 if count == 0:
                     self.logger.warn('No open positions to close.')
                     return False
-
 
         self.logger.info('Sending request to %s/%s, parameter: %s.'
                          % (self.trading_url, method, params))
@@ -2486,38 +2492,40 @@ class fxcmpy(object):
                               % (req.status_code,
                                  unquote(req.text)))
 
+        data = None
         try:
             data = req.json()
+
+            if 'response' not in data or 'executed' not in data['response']:
+                self.logger.error('Malformed response %s' % data)
+                raise ServerError('Malformed response')
+
+            if not data['response']['executed']:
+                if 'error' in data['response'] and data['response']['error'] != '':
+                    self.logger.error('Server reports an error: %s.'
+                                      % data['response'])
+                    self.logger.error('URL: %s' % req.url)
+                    self.logger.error('Headers: %s' % req.request.headers)
+                    self.logger.error('Params: %s' % params)
+                    self.logger.error('Bearer token: %s' % self.bearer_token)
+                    self.logger.error('Connection status: %s'
+                                      % self.connection_status)
+                    self.logger.error('Socket session id: %s'
+                                      % self.socket._engineIO_session.id)
+
+                    raise ServerError('FXCM Server reports an error: %s.'
+                                      % data['response']['error'])
+                else:
+                    self.logger.error('FXCM Server reports an unknown error: %s.'
+                                      % data['response'])
+                    raise ServerError('FXCM Server returns an unknown error.')
+
         except:
             self.logger.error('Can not parse server answer to json object: %s.'
                               % req.text)
 
-        if 'response' not in data or 'executed' not in data['response']:
-            self.logger.error('Malformed response %s' % data)
-            raise ServerError('Malformed response')
-
-        if not data['response']['executed']:
-            if 'error' in data['response'] and data['response']['error'] != '':
-                self.logger.error('Server reports an error: %s.'
-                                  % data['response'])
-                self.logger.error('URL: %s' % req.url)
-                self.logger.error('Headers: %s' % req.request.headers)
-                self.logger.error('Params: %s' % params)
-                self.logger.error('Bearer token: %s' %self.bearer_token )
-                self.logger.error('Connection status: %s' 
-                                   % self.connection_status)
-                self.logger.error('Socket session id: %s' 
-                                   %self.socket._engineIO_session.id)
-
-
-                raise ServerError('FXCM Server reports an error: %s.'
-                                  % data['response']['error'])
-            else:
-                self.logger.error('FXCM Server reports an unknown error: %s.'
-                                  % data['response'])
-                raise ServerError('FXCM Server returns an unknown error.')
-
         self.logger.debug('Server answer: %s.' % data)
+
         return data
 
     def __on_price_update__(self, msg):
@@ -2541,9 +2549,9 @@ class fxcmpy(object):
             callbacks = self.add_callbacks[symbol]
             for func in callbacks:
                 try:
-                    #t = Thread(target=callbacks[func], 
+                    # t = Thread(target=callbacks[func],
                     #           args=(data, self.prices[symbol]))
-                    #t.start()
+                    # t.start()
                     callbacks[func](data, self.prices[symbol])
                 except:
                     self.logger.error('Call of %s raised an error:' % func)
@@ -2583,8 +2591,8 @@ class fxcmpy(object):
         try:
             data = json.loads(msg)
         except:
-            self.logger.warn('Got a non json answer in order stream, ignoring')
-            self.logger.warn(msg)
+            self.logger.warning('Got a non json answer in order stream, ignoring')
+            self.logger.warning(msg)
             return -1
         if 'action' in data and data['action'] == 'I':
             self.logger.info('Got a insert event for orders: %s.' % data)
@@ -2592,7 +2600,7 @@ class fxcmpy(object):
             self.orders[order_id] = fxcmpy_order(self, data)
 
         elif 'action' in data and data['action'] == 'D':
-            self.logger.warn('Got a delete event for orders: %s.' % data)
+            self.logger.warning('Got a delete event for orders: %s.' % data)
             order_id = int(data['orderId'])
             if order_id in self.orders:
                 order = self.orders[order_id]
@@ -2622,7 +2630,7 @@ class fxcmpy(object):
                     return 0
                 for field in data:
                     if (field == 'ocoBulkId' and
-                         order.get_ocoBulkId() != data['ocoBulkId']):
+                            order.get_ocoBulkId() != data['ocoBulkId']):
                         if data['ocoBulkId'] == 0:
                             bulkId = order.get_ocoBulkId()
                             self.oco_orders[bulkId].__remove__(order)
@@ -2644,8 +2652,8 @@ class fxcmpy(object):
                 except:
                     self.logger.error('Call of %s raised an error:' % func)
                     self.logger.error(sys.exc_info()[0])
-                    self.logger(sys.exc_info()[1])
-                    self.logger(sys.exc_info()[2])
+                    self.logger.error(sys.exc_info()[1])
+                    self.logger.error(sys.exc_info()[2])
 
     def __on_open_pos_update__(self, msg):
         """ Gets called when the open_position stream sends new data.
@@ -2662,18 +2670,18 @@ class fxcmpy(object):
             data = json.loads(msg)
         except:
             msg = 'Got non json answer in open pos stream, ignoring.'
-            self.logger.warn(msg)
-            self.logger.warn(msg)
+            self.logger.warning(msg)
+            self.logger.warning(msg)
             return -1
 
         if 'tradeId' in data and data['tradeId'] != '':
             trade_id = int(data['tradeId'])
             if 'action' in data and data['action'] == 'I':
-                self.logger.warn('Got a insert event for open positions: %s.'
+                self.logger.warning('Got a insert event for open positions: %s.'
                                  % data)
                 self.open_pos[trade_id] = fxcmpy_open_position(self, data)
             elif 'action' in data and data['action'] == 'D':
-                self.logger.warn('Got a delete event for open posi: %s' % data)
+                self.logger.warning('Got a delete event for open posi: %s' % data)
                 del self.open_pos[trade_id]
 
             elif ('action' in data and
@@ -2696,8 +2704,8 @@ class fxcmpy(object):
                 except:
                     self.logger.error('Call of %s raised an error:' % func)
                     self.logger.error(sys.exc_info()[0])
-                    self.logger(sys.exc_info()[1])
-                    self.logger(sys.exc_info()[2])
+                    self.logger.error(sys.exc_info()[1])
+                    self.logger.error(sys.exc_info()[2])
 
     def __on_closed_pos_update__(self, msg):
         """ Gets called when the closed_position stream sends new data.
@@ -2714,18 +2722,18 @@ class fxcmpy(object):
             data = json.loads(msg)
         except:
             msg = 'Got non json answer in close pos stream, ignoring.'
-            self.logger.warn(msg)
-            self.logger.warn(msg)
+            self.logger.warning(msg)
+            self.logger.warning(msg)
             return -1
 
         if 'tradeId' in data and data['tradeId'] != '':
             trade_id = int(data['tradeId'])
             if 'action' in data and data['action'] == 'I':
-                self.logger.warn('Got a insert event for closed positions: %s.'
+                self.logger.warning('Got a insert event for closed positions: %s.'
                                  % data)
                 self.closed_pos[trade_id] = fxcmpy_closed_position(self, data)
             elif 'action' in data and data['action'] == 'D':
-                self.logger.warn('Got delete event for closed pos: %s' % data)
+                self.logger.warning('Got delete event for closed pos: %s' % data)
                 del self.closed_pos[trade_id]
 
             elif ('action' in data and
@@ -2748,8 +2756,8 @@ class fxcmpy(object):
                 except:
                     self.logger.error('Call of %s raised an error:' % func)
                     self.logger.error(sys.exc_info()[0])
-                    self.logger(sys.exc_info()[1])
-                    self.logger(sys.exc_info()[2])
+                    self.logger.error(sys.exc_info()[1])
+                    self.logger.error(sys.exc_info()[2])
 
     def __on_error__(self, msg=''):
         self.logger.error('Error: %s' % msg)
