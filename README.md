@@ -106,6 +106,17 @@ In entry order, an order ID is in callback function. You can also see it on orde
 | h8 | 5128 | 10,000 |
 | D1, W1, M1 | no limit | no limit |
 
+## Max calls limitation:
+| Error code ORA-20301, Cmd= | Max calls | Seconds | Function description |
+| --- | --- | --- | --- |
+| 8 | 2 | 600 | GET_TRADER_ORDERS |
+| 24 | 500 | 3600 | SET_INSTRUMENTS |
+| 44 | 50 | 3600 | Get Open positions by Account |
+| 46 | 1500 | 3600 | Get Orders by Account |
+| 79 | 500 | 3600 | Get all accounts per acct id |
+| 117 | 10 | 60 | GetLastOrderMsg |
+| 118 | 10 | 60 | getCustomClsdTrade |
+
 ## How to place trailing stop 
 
 The fixed trailing stop should be 10 or above, for dynamic trailing stop = 1, number between 2-9 will be rejected. also the parameter is trailing_stop_step
