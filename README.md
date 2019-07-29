@@ -12,8 +12,8 @@ With the use of the socket.io library, the API has streaming capability and will
 FXCM's trading hours vary by product. For forex, trading opens on Sundays between 5:00 PM ET and 5:15 PM ET and closes on Fridays around 4:55 PM ET. for CFD, please check [CFD Product Guide.](http://docs.fxcorporate.com/user-guide/ug-cfd-product-guide-ltd-en.pdf)
 
 ## How to start:
-1.	Quick start guide in python at [here](https://github.com/fxcm/RestAPI/blob/master/Rest_quick_start_guide_python.docx) 
-2.	Quick start guide in Node.js at [here](https://github.com/fxcm/RestAPI/blob/master/Rest_quick_start_guide_nodejs.docx) 
+1.	Sample code in python at [here](https://github.com/fxcm/RestAPI/tree/master/fxcm-api-rest-python3-example) 
+2.	Sample code in Node.js at [here](https://github.com/fxcm/RestAPI/tree/master/fxcm-api-rest-nodejs-example) 
 3.	Quick start guide in Java at [here](https://github.com/fxcm/RestAPI/blob/master/FXCM%20JAVA%20REST%20API%20QuickStart.pdf)
 4.  Java sample code at [here](https://apiwiki.fxcorporate.com/api/RestAPI/JavaRestClient.zip)
 5.  C# sample code at [here](https://apiwiki.fxcorporate.com/api/RestAPI/RestAPI_CSharp_sample_code.zip)
