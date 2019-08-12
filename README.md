@@ -1,3 +1,9 @@
+CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. 
+
+**70.96% of retail investor accounts lose money when trading CFDs with this provider.**
+
+You should consider whether you understand how CFDs work and whether you can afford to take the high risk of losing your money.
+
 # RestAPI
 
 Our REST API is a web-based API using a Websocket connection and was developed with algorithmic trading in mind. 
@@ -156,12 +162,6 @@ o	This is for personal use and abides by our [EULA](https://www.fxcm.com/uk/form
 o	For more information, you may contact us: api@fxcm.com
 
 ## Disclaimer:
-
-CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. 
-
-**70.96% of retail investor accounts lose money when trading CFDs with this provider.**
-
-You should consider whether you understand how CFDs work and whether you can afford to take the high risk of losing your money.
 
 High Risk Investment Notice: 
 
