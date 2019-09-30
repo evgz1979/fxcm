@@ -75,6 +75,8 @@ In Market order, an order id is created straightaway and it is in callback immed
       {"response":{"executed":true},"data":{"type":0,"orderId":81712802}}
 
 A trade id is not generated until after order is executed. You have to subscribe the order table and listing the live update and look up the trade id. You will not get trade id in snapshot, because that information was gone when you submit the request. 
+to link the orderID to TradeID, you need to subscribe order table. Open position table, you will get order id immediately from response. You will see insert in order table, follow by update and delete on order table. In Open position, at the same time you will see same order ID + trade ID been insert in open position table then followed by update. Now you know what order combined to what trade ID
+
 
       Examples:
       Subscribing for Orders table:
