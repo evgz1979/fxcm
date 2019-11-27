@@ -68,6 +68,13 @@ You can request a snapshot of trading tables via /trading/get_model.
 
       Model choices: 'Offer', 'OpenPosition', 'ClosedPosition', 'Order', 'Summary', 'LeverageProfile', 'Account', 'Properties'.   
 
+## How to place market order:
+This function is very similar to our market order in TSweb2.0. Since it is a market order, order will be filled at market by system. Client don’t need to specify the price,  you can set rate=0. Order_type=AtMarket tells the server it is a market order, not MarketRange order. Stop and limit are the price you need to specify when you want to exit the market in stoploss/take profit price. Is_in_pips=true means stop/limit is in pips, otherwise it is in real value. Stop should be negative value. 
+
+      Placing Market order:
+      POST /trading/open_trade
+      account_id=1537581&symbol=EUR%2FUSD&is_buy=false&rate=0&amount=5&order_type=AtMarket&time_in_force=GTC
+
 ## OrderID vs TradeID:
 OrderID and TradeID are different.
 In Market order, an order id is created straightaway and it is in callback immediately. 
