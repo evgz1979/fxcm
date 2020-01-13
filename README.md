@@ -27,7 +27,7 @@ FXCM's trading hours vary by product. For forex, trading opens on Sundays betwee
 7.	Download Rest API pdf documents at <a href="https://apiwiki.fxcorporate.com/api/RestAPI/Socket%20REST%20API%20Specs.pdf">here</a>
 8. Start coding.  You will need to reference the <a href="https://socket.io/docs/client-api/">socket.io library</a> in your code. 
    a.	Using Javascript, click <a href="https://www.npmjs.com/package/socket.io">here</a>
-   b.	 Using Python, click <a href="https://pypi.python.org/pypi/socketIO-client">here</a>
+   b.	 Using Python, click <a href="https://github.com/miguelgrinberg/python-socketio">here</a>
 
 
 ## How to connect:
