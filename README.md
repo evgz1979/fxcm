@@ -165,6 +165,13 @@ what is <a href="https://www.quantstart.com/qstrader">QSTrader?</a>
 4. Building/back testing Moving Average Crossover strategy via RestAPI at [Here](https://apiwiki.fxcorporate.com/api/StrategyRealCaseStudy/RestAPI/Moving_Average_Crossover_Strategy.zip)
 5. One video demonstrate how to backtest strategies in Visual Studio via FXCM data On QuantConnect LEAN platform at <a href="https://www.youtube.com/watch?v=m6llfznP4d4">here</a>
 
+## Release: 
+We did a release on demo on 1/12/2020 to improve the Rest API.
+With that said, Our REST API wrapper fxcmpy has been updated, you need to install the latest fxcmpy version at 1.2.6.
+Here is the link where you can find the library: https://pypi.org/project/fxcmpy/#files
+Please have in mind that just with pip install fxcmpy it might not work as it won’t update the library, please use below command.
+pip install –U fxcmpy
+
 ## Note:
 o	This is for personal use and abides by our [EULA](https://www.fxcm.com/uk/forms/eula/)
 
