@@ -166,12 +166,20 @@ what is <a href="https://www.quantstart.com/qstrader">QSTrader?</a>
 5. One video demonstrate how to backtest strategies in Visual Studio via FXCM data On QuantConnect LEAN platform at <a href="https://www.youtube.com/watch?v=m6llfznP4d4">here</a>
 
 ## Release: 
+01/12/2020:
 We did a release on demo on 1/12/2020 to improve the Rest API.
 With that said, Our REST API wrapper fxcmpy has been updated, you need to install the latest fxcmpy version at 1.2.6.
 Here is the link where you can find the library: https://pypi.org/project/fxcmpy/#files
 Please have in mind that just with pip install fxcmpy it might not work as it won’t update the library, please use below command.
+
 pip install python-socketio
+
 pip install –U fxcmpy
+
+01/24/2020:
+We will release to live account coming weekend at 01/24/2020. 
+Please refer to the above release and make sure your code is working on demo and get prepared.
+Please contact us at api@fxcm.com if you have any questions. 
 
 ## Note:
 o	This is for personal use and abides by our [EULA](https://www.fxcm.com/uk/forms/eula/)
