@@ -1,2 +1,2 @@
 python-dateutil
-socketIO-client
+python-socketio

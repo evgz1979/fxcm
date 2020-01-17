@@ -1,6 +1,6 @@
 from collections import namedtuple
 import requests
-from socketIO_client import SocketIO
+import socketio
 import logging
 import json
 import uuid
@@ -9,7 +9,6 @@ from dateutil.parser import parse
 from datetime import datetime
 import time
 import types
-
 
 def isInt(v):
     v = str(v).strip()
@@ -71,9 +70,10 @@ class Trader(object):
 
     def __init__(self, access_token, environment, messageHandler=None,
                  purpose='General', config_file="fxcm_rest.json"):
+        self.socketIO = socketio.Client()
         self.config_file = config_file
         self.initialize()
-        self.socketIO = None
+        self.socketIO = socketIO
         self.updates = {}
         self.symbols = {}
         self.symbol_info = {}
@@ -120,15 +120,8 @@ class Trader(object):
         Do this before any other calls
         :return: Dict
         '''
-        #self.socketIO = SocketIO(self.environment.get("trading"),
-        #                         self.environment.get("port"),
-        #                         params={'access_token':
-        #                                 self.access_token})
         self._log_init()        
-        self.socketIO = SocketIO(self.environment.get("trading"),
-                                 self.environment.get("port"),
-                                 params={'access_token':
-                                         self.access_token})
+        self.socketIO.connect(self.environment.get("trading") +':'+ self.environment.get("port") + '/?access_token='+  self.access_token)
         self.socketIO.on('connect', self.on_connect)
         self.socketIO.on('disconnect', self.on_disconnect)
         thread_name = self.access_token + self.env + self.purpose
@@ -143,7 +136,7 @@ class Trader(object):
         return self.__return(True, "Connecting")
 
     def bearerGen(self):
-        return("Bearer " + self.socketIO._engineIO_session.id + self.access_token)
+        return("Bearer " + self.socketIO.eio.sid + self.access_token)
         
     def on_connect(self):
         '''
@@ -156,8 +149,7 @@ class Trader(object):
 
         :return: None
         '''
-        self.logger.info('Websocket connected: ' +
-                         self.socketIO._engineIO_session.id)
+        self.logger.info('Websocket connected: ' + self.socketIO.eio.sid)
         self.bearer = self.bearerGen()
         self.HEADERS['Authorization'] = self.bearer
         accounts = self.get_model("Account").get('accounts', {})
