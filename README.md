@@ -12,7 +12,7 @@ Developers and investors can create custom trading applications, integrate into 
 
 We utilize the new OAuth 2.0 specification for authentication via token. This allows for a more secure authorization to access your application and can easily be integrated with web applications, mobile devices, and desktop platforms
 
-With the use of the socket.io library, the API has streaming capability and will push data notifications in a JSON format. Your application will have access to our real-time streaming market data, subscribe in real time access to trading tables and place live trades.
+With the use of the socket.io library, the API has streaming capability and will push data notifications in a JSON format. Your application will have access to our real-time streaming market data, subscribe in real time access to trading tables and place live trades. You can also retrieve market data price history. You can find instructions on documentation and sample code.
 
 ## FXCM Trading hours:
 FXCM's trading hours vary by product. For forex, trading opens on Sundays between 5:00 PM ET and 5:15 PM ET and closes on Fridays around 4:55 PM ET. for CFD, please check [CFD Product Guide.](http://docs.fxcorporate.com/user-guide/ug-cfd-product-guide-ltd-en.pdf)
