@@ -169,7 +169,7 @@ what is <a href="https://www.quantstart.com/qstrader">QSTrader?</a>
 #### 01/12/2020:
 We did a release on demo on 1/12/2020 to improve the Rest API.
 With that said, Our REST API wrapper fxcmpy has been updated, you need to install the latest fxcmpy version at 1.2.6.
-Here is the link where you can find the library: https://pypi.org/project/fxcmpy/#files
+Here is the link where you can find the [library:](https://pypi.org/project/fxcmpy/#files)
 Please have in mind that just with pip install fxcmpy it might not work as it won’t update the library, please use below command.
 
 pip install python-socketio
