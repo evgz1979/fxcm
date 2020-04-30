@@ -227,6 +227,8 @@ There is a difference bewteen account name and account id. usually removing the 
 | XAU/EUR | 4005 |
 | XAU/AUD | 4006 |
 | XAU/TRY | 4007 |
+| BTC/USD | 8001 |
+| BCH/USD | 8002 |
 | ETH/USD | 8003 |
 | LTC/USD | 8004 |
 
